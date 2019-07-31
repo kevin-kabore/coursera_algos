@@ -39,14 +39,24 @@
 class QuickFindUF {
     constructor(n) {
         this.ids = new Array(n);
-        for(var i = 0; i < n; i++) this.ids[i] = i;
+        this.sizes = new Array(n);
+        for(var i = 0; i < n; i++){
+            this.ids[i] = i;
+            this.sizes[i] = 1;
+        }
     }
 
     /**
      * chase parent pointers until reach root
+     * Path compression: Make every child node of root point to its grandparent
+     * (thereby halving path length)
      */
     root(i) {
-        while (i !== this.ids[i]) i = this.ids[i];
+        while (i !== this.ids[i]) {
+            this.ids[i] = this.ids[this.ids[i]];
+            
+            i = this.ids[i]
+        };
         return i;
     }
     
@@ -59,12 +69,21 @@ class QuickFindUF {
 
     /**
      * change root of p to point to root of q
+     *  weighted: means smaller tree gets added to larger tree
      */
     union(p, q) {
         let i = this.root(p),
             j = this.root(j);
 
-        this.ids[i] = j;
+        if(i == j) return;
+        
+        if(this.sizes[i] < this.sizes[j]) { // tree i is shorter
+            this.ids[i] = j;
+            this.sizes[j] += this.sizes[i]
+        } else { // tree j is shorter
+            this.ids[j] = j;
+            this.sizes[i] += this.sizes[j];
+        }
     }
     
 }
